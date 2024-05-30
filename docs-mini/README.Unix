@@ -1,0 +1,57 @@
+If you are reading this in hopes that you will find the answer to a
+specific question, please send the question to http://www.flightgear.org/~curt and
+suggest that I include the answer here.
+
+
+I. Compilers and Portability
+============================
+
+FlightGear is known to build with egcs-1.1 and higher, as well as
+gcc-2.8 and higher.  Your mileage may vary with earlier versions of
+these compilers although support for gcc-2.7.x is mostly there.
+
+For other platforms where you may have access to native compilers,
+again your mileage may vary.  We would like to support as many
+different compilers and platforms as possible.  Please relay any
+changes you make (or problems you encounter) back to
+http://www.flightgear.org/~curt, so that in the future we can better support your
+platform and your compiler.  I have access to a few different
+platforms, but I must depend on others to make sure their favorite
+platform and compiler is well supported.
+
+
+II. OpenGL
+==========
+
+FlightGear requires accelerated OpenGL drivers to be properly
+installed and configured on your system.
+
+
+III. GLUT
+=========
+
+FlightGear requires GLUT version 3.7 or later (aka GameGLUT._ GLUT
+needs to be installed on your system before you can build FlightGear.
+GLUT can be found at:
+
+    http://reality.sgi.com/opengl/glut3/glut3.html
+
+GLUT (pronounced like the glut in gluttony) is the OpenGL Utility
+Toolkit, a window system independent toolkit for writing OpenGL
+programs. It implements a simple windowing application programming
+interface (API) for OpenGL. GLUT makes it considerably easier to learn
+about and explore OpenGL programming.  GLUT provides a portable API so
+you can write a single OpenGL program that works on both Win32 PCs and
+X11 workstations.
+
+
+IV. Joystick Support
+=====================
+
+We use the plib joystick library for joystick support.
+
+To make sure joystick support is included when building under Linux:
+
+  - make sure you have the proper joystick module installed.
+  - make sure the proper devices are created in /dev.
+  - /usr/include/linux/joystick.h must exist on your system.

@@ -1,0 +1,26 @@
+Installing FlightGear on Linux
+==============================
+
+Binary packages
+---------------
+Several major Linux distributions offer FlightGear binary packages in their
+official repositories; this is usually the quickest and easiest way to
+install FlightGear, but may not be the latest version.
+
+There are also a number of unofficial repositories offering more frequently
+updated binary packages (some including development versions, which have
+the very latest features but are also more likely to have major bugs);
+see http://www.flightgear.org/download/main-program/ for details.
+
+Compiling from source
+---------------------
+See the general instructions (README.cmake in the directory above this).
+You will need the -dev version of all the prerequisites,
+e.g. libopenscenegraph-dev, libplib-dev.
+
+Graphics drivers
+----------------
+If you experience unusably low frame rates (~1/sec), this may mean that your
+graphics drivers do not support 3D acceleration, or that it is not enabled.  
+To check for this problem run:
+    glxinfo | grep render

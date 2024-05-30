@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+
+<!--  Submodels are objects which can be dropped or launched from the user
+      aircraft. The trigger is a boolean property, which you define, which when
+      "true" causes the submodel to be released/launched.
+
+      A submodel will create an AIBallistic object which will follow a ballistic
+      path. By default one submodel will be released when the corresponding 
+      trigger is "true".
+
+      The initial conditions (IC) define the object's starting point (relative
+      to the user aircraft's "reported position"), and its initial speed and
+      direction (relative to the user aircraft).  If you want to release many
+      similar objects with similar IC, then you may use the <repeat>, <delay>
+      and <count> properties to define this.  The allowed properties are:
+
+      <name>         The name of the submodel.
+      <model>        The path to the visual model.
+      <trigger>      The property which will act as the trigger. 
+      <speed>        Initial speed, in feet/sec, relative to user aircraft.
+      <repeat>       Set "true" if you want multiple releases of this submodel.
+      <delay>        Time, in seconds, between repeated releases.
+      <count>        Number of submodels available for multiple release.
+                     -1 defines an unlimited number.
+      <slaved>       Not used yet.
+      <x-offset>     Submodel's initial fore/aft position relative to user
+                     aircraft.   Fore is positive.
+      <y-offset>     Submodel's initial left/right position relative to user
+                     aircraft.   Right is positive.
+      <z-offset>     Submodel's initial up/down position relative to user
+                     aircraft.   Up is positive.
+      <yaw-offset>   Submodel's initial azimuth, in degrees, relative to user
+                     aircraft'snose.   Right is positive.
+      <pitch-offset> Submodel's initial elevation, in degrees, relative to user
+                     aircraft's pitch.    Up is positive.
+      <life>         Life span in seconds.  Default is 900.0.
+      <buoyancy>     In ft/sec/sec.  Works opposite acceleration of gravity.
+                     For example, if set to 32 the submodel will feel no 
+                     gravity. If greater than 32 the object will rise.
+                     Default is 0.
+      <wind>         Set to true if you want the submodel to react to the wind.
+                     Default is "false". 
+	  <cd>           The Coeffient of Drag. Varies with submodel shape - 0.295 for a bullet, 
+	                 0.045 for an airfoil. Enter an appropriate value. Defaults to 0.295.
+	  <eda>          Effective drag area (sq ft). Usually the cross-sectional area of the
+	                 submodel normal to the airflow.
+      <weight>       The weight of the submodel (lbs). NOT set to 0 on submodel release.You 
+	                 may wish to set this value to 0 by means of key bindings or Nasal script.
+					 Defaults to 0.25.
+	  <contents>     The path to the contents of a submodel. The contents must be in lbs.
+	  	 			 Intended for use with drop tanks. The property value will be set 
+					 to 0 on release of the submodel: do not also set to 0 elsewhere e.g.
+					 in key bindings. Defaults to 0.
+-->  
+ 
+<PropertyList>
+
+  <submodel>
+    <name>left gun</name>
+    <model>Models/Geometry/tracer.ac</model>
+    <trigger>ai/submodels/submodel[0]/trigger</trigger>
+    <speed>2750.0</speed>
+    <repeat>true</repeat>
+    <delay>0.25</delay>
+    <count>100</count>
+    <x-offset>1.0</x-offset>
+    <y-offset>-7.0</y-offset>
+    <z-offset>-2.0</z-offset>
+    <yaw-offset>0.4</yaw-offset>
+    <pitch-offset>1.8</pitch-offset>
+    <life>2.0</life>
+  </submodel>
+
+  <submodel>
+    <name>right gun</name>
+    <model>Models/Geometry/tracer.ac</model>
+    <trigger>ai/submodels/submodel[0]/trigger</trigger>
+    <speed>2750.0</speed>
+    <repeat>true</repeat>
+    <delay>0.25</delay>
+    <count>100</count>
+    <x-offset>1.0</x-offset>
+    <y-offset>7.0</y-offset>
+    <z-offset>-2.0</z-offset>
+    <yaw-offset>-0.4</yaw-offset>
+    <pitch-offset>1.8</pitch-offset>
+    <life>2.0</life>
+  </submodel>
+  
+  <submodel> 
+      <name>droptank-l</name>
+      <model>Aircraft/Hunter/Models/droptank-100gal.ac</model>
+      <trigger>controls/armament/station[0]/jettison-all</trigger>
+      <speed>0</speed>
+      <repeat>false</repeat>
+      <count>1</count>
+      <x-offset>0.820</x-offset>
+      <y-offset>-9.61</y-offset>
+      <z-offset>-2.39</z-offset>
+      <yaw-offset>0</yaw-offset>
+      <pitch-offset>0</pitch-offset>
+      <wind>false</wind>
+      <eda>2.11348887</eda>
+	  <weight>170</weight>
+	  <cd>0.045</cd>
+	  <contents>consumables/fuel/tank[2]/level-lbs</contents>
+    </submodel>
+	
+    <submodel> 
+      <name>droptank-r</name>
+      <model>Aircraft/Hunter/Models/droptank-100gal.ac</model>
+      <trigger>controls/armament/station[1]/jettison-all</trigger>
+      <speed>0</speed>
+      <repeat>false</repeat>
+      <count>1</count>
+      <x-offset>0.820</x-offset>
+      <y-offset>9.61</y-offset>
+      <z-offset>-2.39</z-offset>
+      <yaw-offset>0</yaw-offset>
+      <pitch-offset>0</pitch-offset>
+      <wind>false</wind>
+	  <eda>2.11348887</eda>
+	  <weight>170</weight>
+	  <cd>0.045</cd>
+	  <contents>consumables/fuel/tank[3]/level-lbs</contents>
+    </submodel>
+
+</PropertyList>

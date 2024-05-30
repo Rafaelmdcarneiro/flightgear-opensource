@@ -1,0 +1,661 @@
+The Open Scene Graph library, which current FlightGear uses for its 3D
+graphics, provides excellent support for multiple views of a
+scene. FlightGear uses the osgViewer::Viewer class, which implements a
+"master" camera with "slave" cameras that are offset from the master's
+position and orientation. FlightGear provides the "camera group"
+abstraction which allows the configuration of slave cameras via the
+property tree.
+
+Slave cameras can be mapped to windows that are open on different
+screens, or all in one window, or a combination of those two schemes,
+according to the video hardware capabilities of a machine. It is not
+advisable to open more than one window on a single graphics card due
+to the added cost of OpenGL context switching between the
+windows. Usually, multiple monitors attached to a single graphics card
+are mapped to different pieces of the same desktop, so a window can be
+opened that spans all the monitors. This is implemented by Nvidia's
+TwinView technology and the Matrox TripleHead2Go hardware.
+
+The camera group is configured by the /sim/rendering/camera-group node
+in the property tree. It can be set up by, among other things, XML in
+preferences.xml or in an XML file specified on the command line with
+the --config option.
+
+Here are the XML tags for defining camera groups.
+
+camera-group
+For the moment there can be only one camera group. It can contain
+window, camera, or gui tags.
+
+ window
+ A window defines a graphics window. It can be at the camera-group
+ level or defined within a camera. The window contains these tags:
+
+  name - string
+  The name of the window which might be displayed in the window's
+  title bar. It is also used to refer to a previously defined
+  window. A window can contain just a name node, in which case
+  the whole window definition refers to a previously defined window.
+
+  host-name - string
+  The name of the host on which the window is opened. Usually this is
+  empty.
+
+  display - int
+  The display number on which the window is opened.
+
+  screen - int
+  The screen number on which the window is opened.
+
+  x, y - int
+  The location on the screen at which the window is opened. This is in
+  the window system coordinates, which usually puts 0,0 at the upper
+  left of the screen XXX check this for Windows.
+
+  width, height - int
+  The dimensions of the window.
+
+  decoration - bool
+  Whether the window manager should decorate the window.
+
+  fullscreen - bool
+  Shorthand for a window that occupies the entire screen with no
+  decoration.
+
+ camera
+ The camera node contains viewing parameters.
+
+  window
+  This specifies the window which displays the camera. Either it
+  contains just a name that refers to a previous window definition, or
+  it is a full window definition.
+
+  viewport
+  The viewport positions a camera within a window. It is most useful
+  when several cameras share a window.
+
+   x, y - int
+   The position of the lower left corner of the viewport, in y-up
+   coordinates.
+
+   width, height - int
+   The dimensions of the viewport
+
+  physical-dimensions
+  The physical dimension of the projection surface.
+  Use this together with the master-perspective, right-of-perspective
+  left-of-perspective, above-perspective, below-perspective or
+  reference-points-perspective
+
+   width, height - double
+   The dimensions of the projection plane, if unset the veiwport values
+   are taken as default.
+
+   bezel
+   Gives informantion about the bezel of monitors for a seamless view.
+
+    right
+    right bezel with in the same units than with and height above
+
+    left
+    left bezel with in the same units than with and height above
+
+    top
+    top bezel with in the same units than with and height above
+
+    bottom
+    bottom bezel with in the same units than with and height above
+
+  view
+  The view node specifies the origin and direction of the camera in
+  relation to the whole camera group. The coordinate system is +y up,
+  -z forward in the direction of the camera group view. This is the
+  same as the OpenGL viewing coordinates.
+
+   x,y,z - double
+   Coordinates of the view origin.
+
+   heading-deg, pitch-deg, roll-deg - double
+   Orientation of the view in degrees. These are specified using the
+   right-hand rule, so a positive heading turns the view to the left,
+   a positive roll rolls the view to the left.
+
+  perspective
+  This node is one way of specifying the viewing volume camera
+  parameters. It corresponds to the OpenGL gluPerspective function. 
+
+   fovy-deg - double
+   The vertical field-of-view
+
+   aspect-ratio - double
+   Aspect ratio of camera rectangle (not the ratio between the
+   vertical and horizontal fields of view).
+
+   near, far - double
+   The near and far planes, in meters from the camera eye point. Note
+   that FlightGear assumes that the far plane is far away, currently
+   120km. The far plane specified here will be respected, but the sky
+   and other background elements may not be drawn if the view plane is
+   closer than 120km.
+
+   fixed-near-far - bool
+   If true the near and far values are taken from above, if false
+   near and far are adapted from the scene and visibility.
+   Defaults to true.
+
+   offset-x, offset-y - double
+   Offsets of the viewing volume specified by the other parameters in
+   the near plane, in meters.
+
+  frustum
+  This specifies the perspective viewing volume using values for the near
+  and far planes and coordinates of the viewing rectangle in the near
+  plane.
+
+   left, bottom - double
+   right, top - double
+   The coordinates of the viewing rectangle.
+
+   near, far - double
+   The near and far planes, in meters from the camera eye point.
+
+   fixed-near-far - bool
+   If true the near and far values are taken from above, if false
+   near and far are adapted from the scene and visibility.
+   Defaults to true.
+
+  ortho
+  This specifies an orthographic view. The parameters are the sames as
+  the frustum node's.
+
+   fixed-near-far - bool
+   If true the near and far values are taken from above, if false
+   near and far are adapted from the scene and visibility.
+   Defaults to true.
+
+  master-perspective
+  Defines a persective projection matrix for use as the leading display
+  in a seamless multiscreen configuration. This kind of perspective
+  projection is zoomable.
+
+   eye-distance - double
+   The distance of the eyepoint from the projection surface in units of
+   the physical-dimensions values above.
+
+   x-offset, y-offset - double
+   Offset of the eyelpint from the center of the screen in units of
+   the physical-dimensions values above.
+
+  left-of-perspective, right-of-perspective, above-perspective,
+  below-perspective
+  Defines a perspective projection matrix for use as derived display
+  in a seamless multiscreen configuration. The projection matrix
+  is computed so that the respective edge of this display matches the
+  assiciated other edge of the other display. For example the right edge
+  of a left-of-perspective display matches the left edge of the parent
+  display. This also works with different zoom levels, leading to distorted
+  but still seamless multiview configurations.
+  The bezel with configured in the physical dimensions of this screen and
+  the parent screen are taken into account for this type of projection.
+
+   parent-camera - string
+   Name of the parent camera.
+
+  reference-points-perspective
+  Defines a perspective projection matrix for use as derived display
+  in a seamless multiscreen configuration. This type is very similar to
+  left-of-perspective and friends. It is just a more flexible but less
+  convenient way to get the same effect. A child display is configured
+  by 2 sets of reference points one in this current camera and one in
+  the parrent camera which should match in the final view.
+
+   parent-camera - string
+   Name of the parent camera.
+
+   this
+   reference points for this projection.
+
+    point - array of two points
+
+     x, y - double
+     x and y coodinates of the reference points in units of this
+     physical-dimensions.
+
+   parent
+   reference points for the parent projection.
+
+    point - array of two points
+
+     x, y - double
+     x and y coodinates of the reference points in units of the
+     parents physical-dimensions.
+
+  texture
+  This tag indicates that the camera renders to a texture instead of the
+  framebuffer. For now the following tags are supported, but obviously
+  different  texture formats should be specified too. 
+   name - string
+   The name of the texture. This can be referred to by other cameras.
+   width, height - double
+   The dimensions of the texture
+
+  panoramic-distortion
+  This tag cause the camera to create distortion geometry that
+  corrects for projection onto a spherical screen. It is equivalent to
+  the --panoramic-sd option to osgviewer.
+
+   texture - string
+   The name of a texture, created by another camera, that will be
+   rendered on the distortion correction geometry.
+
+   radius - double
+   Radius of string
+
+   collar - double
+   size of screen collar.
+
+ gui
+ This is a special camera node that displays the 2D GUI.
+
+  viewport
+  This specifies the position and dimensions of the GUI within a
+  window, *however* at the moment the origin must be at 0,0.
+
+Here's an example that uses a single window mapped across 3
+displays. The displays are in a video wall configuration in a
+horizontal row.
+
+<PropertyList>
+  <sim>
+    <rendering>
+      <camera-group>
+        <window>
+          <name>wide</name>
+          <host-name type="string"></host-name>
+          <display>0</display>
+          <screen>0</screen>
+          <width>3840</width>
+          <height>1024</height>
+          <decoration type = "bool">false</decoration>
+        </window>
+        <camera>
+          <window>
+            <name>wide</name>
+          </window>
+          <viewport>
+            <x>0</x>
+            <y>0</y>
+            <width>1280</width>
+            <height>1024</height>
+          </viewport>
+          <view>
+            <heading-deg type = "double">0</heading-deg>
+          </view>
+          <frustum>
+            <top>0.133</top>
+            <bottom>-0.133</bottom>
+            <left>-.5004</left>
+            <right>-.1668</right>
+            <near>0.4</near>
+            <far>120000.0</far>
+          </frustum>
+        </camera>
+        <camera>
+          <window>
+            <name type="string">wide</name>
+          </window>
+          <viewport>
+            <x>1280</x>
+            <y>0</y>
+            <width>1280</width>
+            <height>1024</height>
+          </viewport>
+          <view>
+            <heading-deg type = "double">0</heading-deg>
+          </view>
+          <frustum>
+            <top>0.133</top>
+            <bottom>-0.133</bottom>
+            <left>-.1668</left>
+            <right>.1668</right>
+            <near>0.4</near>
+            <far>120000.0</far>
+          </frustum>
+        </camera>
+        <camera>
+          <window>
+            <name>wide</name>
+          </window>
+          <viewport>
+            <x>2560</x>
+            <y>0</y>
+            <width>1280</width>
+            <height>1024</height>
+          </viewport>
+          <view>
+            <heading-deg type = "double">0</heading-deg>
+          </view>
+          <frustum>
+            <top>0.133</top>
+            <bottom>-0.133</bottom>
+            <left>.1668</left>
+            <right>.5004</right>
+            <near>0.4</near>
+            <far>120000.0</far>
+          </frustum>
+        </camera>
+        <gui>
+          <window>
+            <name type="string">wide</name>
+          </window>
+        </gui>
+      </camera-group>
+    </rendering>
+  </sim>
+</PropertyList>
+
+Here's a complete example that uses a seperate window on each
+display. The displays are arranged in a shallow arc with the left and
+right displays at a 45.3 degree angle to the center display because,
+at the assumed screen dimensions, the horizontal field of view of one
+display is 45.3 degrees. Each camera has its own window definition;
+the center window is given the name "main" so that the GUI definition
+can refer to it.  Note that the borders of the displays are not
+accounted for.
+
+<PropertyList>
+  <sim>
+    <rendering>
+      <camera-group>
+        <camera>
+          <window>
+            <host-name type="string"></host-name>
+            <display>0</display>
+            <screen>0</screen>
+            <fullscreen type = "bool">true</fullscreen>
+          </window>
+          <view>
+            <heading-deg type = "double">45.3</heading-deg>
+          </view>
+          <frustum>
+            <top>0.133</top>
+            <bottom>-0.133</bottom>
+            <left>-.1668</left>
+            <right>.1668</right>
+            <near>0.4</near>
+            <far>120000.0</far>
+          </frustum>
+        </camera>
+        <camera>
+          <window>
+            <name type="string">main</name>
+            <host-name type="string"></host-name>
+            <display>0</display>
+            <screen>1</screen>
+            <fullscreen type = "bool">true</fullscreen>
+          </window>
+          <view>
+            <heading-deg type = "double">0</heading-deg>
+          </view>
+          <frustum>
+            <top>0.133</top>
+            <bottom>-0.133</bottom>
+            <left>-.1668</left>
+            <right>.1668</right>
+            <near>0.4</near>
+            <far>120000.0</far>
+          </frustum>
+        </camera>
+        <camera>
+          <window>
+            <host-name type="string"></host-name>
+            <display>0</display>
+            <screen>2</screen>
+            <fullscreen type = "bool">true</fullscreen>
+          </window>
+          <view>
+            <heading-deg type = "double">-45.3</heading-deg>
+          </view>
+          <frustum>
+            <top>0.133</top>
+            <bottom>-0.133</bottom>
+            <left>-.1668</left>
+            <right>.1668</right>
+            <near>0.4</near>
+            <far>120000.0</far>
+          </frustum>
+        </camera>
+        <gui>
+          <window>
+            <name type="string">main</name>
+          </window>
+        </gui>
+      </camera-group>
+    </rendering>
+  </sim>
+</PropertyList>
+
+This example renders the scene for projection onto a spherical screen.
+
+<PropertyList>
+  <sim>
+    <rendering>
+      <camera-group>
+        <camera>
+          <window>
+            <name type="string">main</name>
+            <host-name type="string"></host-name>
+            <display>0</display>
+            <screen>0</screen>
+            <!-- <fullscreen type = "bool">true</fullscreen>-->
+            <width>1024</width>
+            <height>768</height>
+          </window>
+          <view>
+            <heading-deg type = "double">0</heading-deg>
+          </view>
+          <frustum>
+            <top>0.133</top>
+            <bottom>-0.133</bottom>
+            <left>-.1668</left>
+            <right>.1668</right>
+            <near>0.4</near>
+            <far>120000.0</far>
+          </frustum>
+          <texture>
+            <name>mainview</name>
+            <width>1024</width>
+            <height>768</height>
+          </texture>
+        </camera>
+        <camera>
+          <window><name>main</name></window>
+          <ortho>
+            <top>768</top>
+            <bottom>0</bottom>
+            <left>0</left>
+            <right>1024</right>
+            <near>-1.0</near>
+            <far>1.0</far>
+          </ortho>
+          <panoramic-spherical>
+            <texture>mainview</texture>
+          </panoramic-spherical>
+        </camera>
+        <gui>
+          <window>
+            <name type="string">main</name>
+          </window>
+        </gui>
+      </camera-group>
+    </rendering>
+  </sim>
+</PropertyList>
+ 
+Here is an example for a 3 screen seamless zoomable multiscreen
+configuration using 3 533mmx300mm displays each with a 23mm bezel.
+The side views are angled with 45 deg.
+The commented out reference-points-perspective shows the
+aequivalent configuration than the active right-of-perspective.
+This is done by just using two reference points at the outer
+edge of the bezel of the respective display.
+
+<PropertyList>
+  <sim>
+    <view n="0">
+      <config>
+        <pitch-offset-deg>0.0</pitch-offset-deg>
+      </config>
+    </view>
+
+    <rendering>
+      <camera-group>
+        <window>
+          <name type="string">0.0</name>
+          <host-name type="string"></host-name>
+          <display>0</display>
+          <screen>0</screen>
+          <fullscreen type="bool">true</fullscreen>
+        </window>
+
+        <window>
+          <name type="string">0.1</name>
+          <host-name type="string"></host-name>
+          <display>0</display>
+          <screen>1</screen>
+          <fullscreen type="bool">true</fullscreen>
+        </window>
+
+        <camera>
+          <name type="string">CenterCamera</name>
+          <window>
+            <name>0.0</name>
+          </window>
+          <viewport>
+            <x>0</x>
+            <y>0</y>
+            <width>1920</width>
+            <height>1080</height>
+          </viewport>
+          <view>
+            <heading-deg type="double">0.0</heading-deg>
+            <roll-deg type="double">0.0</roll-deg>
+            <pitch-deg type="double">0.0</pitch-deg>
+          </view>
+          <physical-dimensions>
+            <!-- The size of the projection plane: 533mm 300mm -->
+            <width>533</width>
+            <height>300</height>
+            <bezel>
+              <right>23</right>
+              <left>23</left>
+              <top>23</top>
+              <bottom>23</bottom>
+            </bezel>
+          </physical-dimensions>
+          <master-perspective>
+            <!-- Cheating, the real distance is about 800mm.
+                 But then the screen does not show what is needed to fly.
+                 By shortening this pictures get bigger but the view also gets
+                 less realistic.
+            -->
+            <eye-distance>450</eye-distance>
+            <x-offset>0</x-offset>
+            <y-offset>130</y-offset>
+          </master-perspective>
+        </camera>
+        <camera>
+          <name type="string">RightCamera</name>
+          <window>
+            <name>0.0</name>
+          </window>
+          <viewport>
+            <x>1920</x>
+            <y>0</y>
+            <width>1920</width>
+            <height>1080</height>
+          </viewport>
+          <view>
+            <heading-deg type="double">-45</heading-deg>
+            <roll-deg type="double">0</roll-deg>
+            <pitch-deg type="double">0</pitch-deg>
+          </view>
+          <physical-dimensions>
+            <!-- The size of the projection plane: 533mm 300mm -->
+            <width>533</width>
+            <height>300</height>
+            <bezel>
+              <right>23</right>
+              <left>23</left>
+              <top>23</top>
+              <bottom>23</bottom>
+            </bezel>
+          </physical-dimensions>
+          <right-of-perspective>
+            <parent-camera type="string">CenterCamera</parent-camera>
+          </right-of-perspective>
+          <!-- <reference-points-perspective> -->
+          <!--   <parent-camera type="string">CenterCamera</parent-camera> -->
+          <!--   <parent> -->
+          <!--     <point n="0"> -->
+          <!--       <x>289.5</x> -->
+          <!--       <y>100</y> -->
+          <!--     </point> -->
+          <!--     <point n="1"> -->
+          <!--       <x>289.5</x> -->
+          <!--       <y>-100</y> -->
+          <!--     </point> -->
+          <!--   </parent> -->
+          <!--   <this> -->
+          <!--     <point n="0"> -->
+          <!--       <x>-289.5</x> -->
+          <!--       <y>100</y> -->
+          <!--     </point> -->
+          <!--     <point n="1"> -->
+          <!--       <x>-289.5</x> -->
+          <!--       <y>-100</y> -->
+          <!--     </point> -->
+          <!--   </this> -->
+          <!-- </reference-points-perspective> -->
+        </camera>
+
+        <camera>
+          <name type="string">LeftCamera</name>
+          <window>
+            <name>0.1</name>
+          </window>
+          <viewport>
+            <x>0</x>
+            <y>0</y>
+            <width>1920</width>
+            <height>1080</height>
+          </viewport>
+          <view>
+            <heading-deg type="double">45</heading-deg>
+            <roll-deg type="double">0</roll-deg>
+            <pitch-deg type="double">0</pitch-deg>
+          </view>
+          <physical-dimensions>
+            <!-- The size of the projection plane: 533mm 300mm -->
+            <width>533</width>
+            <height>300</height>
+            <bezel>
+              <right>23</right>
+              <left>23</left>
+              <top>23</top>
+              <bottom>23</bottom>
+            </bezel>
+          </physical-dimensions>
+          <left-of-perspective>
+            <parent-camera type="string">CenterCamera</parent-camera>
+          </left-of-perspective>
+        </camera>
+        <gui>
+          <window>
+            <name type="string">0.0</name>
+          </window>
+        </gui>
+      </camera-group>
+    </rendering>
+  </sim>
+</PropertyList>
